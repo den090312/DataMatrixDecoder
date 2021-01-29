@@ -20,12 +20,17 @@ namespace DataMatrixDecoder
 
             DecodeOptions o = new DecodeOptions();
             Bitmap b = new Bitmap(filePath);
-            DmtxDecoded[] res = Dmtx.Decode(b, o);
-            for (uint i = 0; i < res.Length; i++)
-            {
-                string str = Encoding.ASCII.GetString(res[i].Data).TrimEnd('\0');
-                Console.WriteLine("Code " + i + ": " + str);
-            }
+
+            Dmtx.DenisDecode(b ,o);
+
+            //DecodeOptions o = new DecodeOptions();
+            //Bitmap b = new Bitmap(filePath);
+            //DmtxDecoded[] res = Dmtx.Decode(b, o);
+            //for (uint i = 0; i < res.Length; i++)
+            //{
+            //    string str = Encoding.ASCII.GetString(res[i].Data).TrimEnd('\0');
+            //    Console.WriteLine("Code " + i + ": " + str);
+            //}
         }
     }
 }
