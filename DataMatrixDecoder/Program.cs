@@ -12,17 +12,26 @@ namespace DataMatrixDecoder
     {
         static void Main(string[] args)
         {
-            var fileName = "1185754.jpg";
-            //var fileName = "1201614.jpg";
+            var domain = AppDomain.CreateDomain("MyDomain", null);
+
+            //var fileName = "1185754.jpg";
+            var fileName = "236003_2.jpg";
+            //var fileName = "1223495.jpg";
             //var fileName = "wiki.png";
 
             var filePath = $@"{AppDomain.CurrentDomain.BaseDirectory}{fileName}";
 
-            var options = new DecodeOptions();
-            var bitmap = new Bitmap(filePath);
-            var domain = AppDomain.CreateDomain("MyDomain", null);
+            DecodeOptions o = new DecodeOptions();
+            Bitmap b = new Bitmap(filePath);
+            //DmtxDecoded[] res = Dmtx.Decode(b, o);
+            //for (uint i = 0; i < res.Length; i++)
+            //{
+            //    string str = Encoding.ASCII.GetString(res[i].Data).TrimEnd('\0');
+            //    Console.WriteLine("Code " + i + ": " + str);
+            //}
 
-            new Dmtx().DenisDecode(bitmap, options, domain);
+            new Dmtx().Decode(b, o);
+            //new Dmtx().DecodeSingle(b, o, domain);
         }
     }
 }
