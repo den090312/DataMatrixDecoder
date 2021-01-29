@@ -18,19 +18,11 @@ namespace DataMatrixDecoder
 
             var filePath = $@"{AppDomain.CurrentDomain.BaseDirectory}{fileName}";
 
-            DecodeOptions o = new DecodeOptions();
-            Bitmap b = new Bitmap(filePath);
+            var options = new DecodeOptions();
+            var bitmap = new Bitmap(filePath);
+            var domain = AppDomain.CreateDomain("MyDomain", null);
 
-            Dmtx.DenisDecode(b ,o);
-
-            //DecodeOptions o = new DecodeOptions();
-            //Bitmap b = new Bitmap(filePath);
-            //DmtxDecoded[] res = Dmtx.Decode(b, o);
-            //for (uint i = 0; i < res.Length; i++)
-            //{
-            //    string str = Encoding.ASCII.GetString(res[i].Data).TrimEnd('\0');
-            //    Console.WriteLine("Code " + i + ": " + str);
-            //}
+            new Dmtx().DenisDecode(bitmap, options, domain);
         }
     }
 }
