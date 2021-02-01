@@ -12,8 +12,6 @@ namespace DataMatrixDecoder
     {
         static void Main(string[] args)
         {
-            var domain = AppDomain.CreateDomain("MyDomain", null);
-
             //var fileName = "1185754.jpg";
             var fileName = "236003_2.jpg";
             //var fileName = "1223495.jpg";
@@ -21,17 +19,54 @@ namespace DataMatrixDecoder
 
             var filePath = $@"{AppDomain.CurrentDomain.BaseDirectory}{fileName}";
 
-            DecodeOptions o = new DecodeOptions();
-            Bitmap b = new Bitmap(filePath);
-            //DmtxDecoded[] res = Dmtx.Decode(b, o);
-            //for (uint i = 0; i < res.Length; i++)
-            //{
-            //    string str = Encoding.ASCII.GetString(res[i].Data).TrimEnd('\0');
-            //    Console.WriteLine("Code " + i + ": " + str);
-            //}
+            var options = new DecodeOptions();
+            var bitmap = new Bitmap(filePath);
 
-            new Dmtx().Decode(b, o);
-            //new Dmtx().DecodeSingle(b, o, domain);
+            //new Dmtx().DecodeSingle(
+            //    bitmap, 
+            //    options, 
+            //    new Barcode { date = DateTime.Now, filename = filePath }, 
+            //    AppDomain.CreateDomain("MyDomain", null));
+
+            //_ = Task.Factory.StartNew(() =>
+            //{
+            //    new Dmtx().Decode(
+            //        bitmap,
+            //        new Barcode { date = DateTime.Now, filename = filePath },
+            //        options);
+            //});
+
+            new Dmtx().Decode(
+                bitmap,
+                new Barcode { date = DateTime.Now, filename = filePath },
+                options);
+
+            PrintBarcodes();
+            //DeleteAllBarcodes();
+        }
+
+        public static void PrintBarcodes()
+        {
+            using (var context = new Context())
+            {
+                foreach (var barcode in context.Barcodes)
+                {
+                    Console.WriteLine("---------------------");
+                    Console.WriteLine($@"- {barcode.date}");
+                    Console.WriteLine($@"- {barcode.filename}");
+                    Console.WriteLine($@"- {barcode.value}");
+                    Console.WriteLine("---------------------");
+                }
+            }
+        }
+
+        public static void DeleteAllBarcodes()
+        {
+            using (var context = new Context())
+            {
+                context.Database.ExecuteSqlCommand("DELETE FROM Barcodes");
+                context.SaveChanges();
+            }
         }
     }
 }
