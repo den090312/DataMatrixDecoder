@@ -39,8 +39,10 @@ namespace Libdmtx
     /// </summary>
     public class Dmtx
     {
+        private readonly object _lock = new object();
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate void DmtxDecodeCallback(DecodedInternal dmtxDecodeResult);
+        private delegate bool DmtxDecodeCallback(DecodedInternal dmtxDecodeResult);
 
         public delegate void DecodeCallback(DmtxDecoded decoded);
 
@@ -64,7 +66,47 @@ namespace Libdmtx
             }
         }
 
-        public void DecodeSingle(Bitmap bitmap, DecodeOptions options, Barcode barcode, AppDomain domain)
+        //public void DecodeSingle(Bitmap bitmap, DecodeOptions options, Barcode barcode, AppDomain domain)
+        //{
+        //    var pxl = BitmapToByteArray(bitmap, out int bitmapStride);
+
+        //    DmtxDecode(
+        //        pxl,
+        //        (uint)bitmap.Width,
+        //        (uint)bitmap.Height,
+        //        (uint)bitmapStride,
+        //        options,
+        //        null,
+        //        0,
+        //        delegate (DecodedInternal dmtxDecodeResult)
+        //        {
+        //            var result = new DmtxDecoded
+        //            {
+        //                Data = new byte[dmtxDecodeResult.DataSize]
+        //            };
+
+        //            for (int dataIdx = 0; dataIdx < dmtxDecodeResult.DataSize; dataIdx++)
+        //            {
+        //                result.Data[dataIdx] = Marshal.ReadByte(dmtxDecodeResult.Data, dataIdx);
+        //            }
+
+        //            barcode.value = Encoding.ASCII.GetString(result.Data).TrimEnd('\0');
+
+        //            using (var context = new Context())
+        //            {
+        //                context.Barcodes.Add(barcode);
+
+        //                lock (_lock)
+        //                {
+        //                    context.SaveChanges();
+        //                }
+        //            }
+
+        //            AppDomain.Unload(domain);
+        //        });
+        //}
+
+        public void DecodeAndSave(Bitmap bitmap, Barcode barcode, DecodeOptions options, Context context)
         {
             var pxl = BitmapToByteArray(bitmap, out int bitmapStride);
 
@@ -83,57 +125,30 @@ namespace Libdmtx
                         Data = new byte[dmtxDecodeResult.DataSize]
                     };
 
-                    for (int dataIdx = 0; dataIdx < dmtxDecodeResult.DataSize; dataIdx++)
+                    try
                     {
-                        result.Data[dataIdx] = Marshal.ReadByte(dmtxDecodeResult.Data, dataIdx);
+                        for (int dataIdx = 0; dataIdx < dmtxDecodeResult.DataSize; dataIdx++)
+                        {
+                            result.Data[dataIdx] = Marshal.ReadByte(dmtxDecodeResult.Data, dataIdx);
+                        }
+                    }
+                    catch
+                    {
+                        //TODO: Логирование ошибки нечитабельной картинки
                     }
 
-                    barcode.value = Encoding.ASCII.GetString(result.Data).TrimEnd('\0');
+                    var code = Encoding.ASCII.GetString(result.Data).TrimEnd('\0');
 
-                    using (var context = new Context())
-                    {
-                        context.Barcodes.Add(barcode);
-                        context.SaveChangesAsync();
-                    }
+                    barcode.value = code;
 
-                    AppDomain.Unload(domain);
+                    Console.WriteLine(barcode.value);
+
+                    //context.Barcodes.Add(barcode);
+
+                    return true;
                 });
-        }
 
-        public void Decode(Bitmap bitmap, Barcode barcode, DecodeOptions options)
-        {
-            var pxl = BitmapToByteArray(bitmap, out int bitmapStride);
-
-            DmtxDecode(
-                pxl,
-                (uint)bitmap.Width,
-                (uint)bitmap.Height,
-                (uint)bitmapStride,
-                options,
-                null,
-                0,
-                async delegate (DecodedInternal dmtxDecodeResult)
-                {
-                    var result = new DmtxDecoded
-                    {
-                        Data = new byte[dmtxDecodeResult.DataSize]
-                    };
-
-                    for (int dataIdx = 0; dataIdx < dmtxDecodeResult.DataSize; dataIdx++)
-                    {
-                        result.Data[dataIdx] = Marshal.ReadByte(dmtxDecodeResult.Data, dataIdx);
-                    }
-
-                    barcode.value = Encoding.ASCII.GetString(result.Data).TrimEnd('\0');
-
-                    //Console.WriteLine(barcode.value);
-
-                    using (var context = new Context())
-                    {
-                        context.Barcodes.Add(barcode);
-                        await context.SaveChangesAsync();
-                    }
-                });
+            //context.SaveChanges();
         }
 
         private byte[] BitmapToByteArray(Bitmap b, out int stride)
@@ -289,6 +304,7 @@ namespace Libdmtx
         private delegate void DmtxDiagnosticImageCallback(IntPtr data, uint totalBytes, uint headerSize);
 
         [DllImport("libdmtx.dll", EntryPoint = "dmtx_decode")]
+        //unsafe private static extern byte
         private static extern byte
         DmtxDecode(
             [In] byte[] image,

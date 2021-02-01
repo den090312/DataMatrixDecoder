@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,37 +13,29 @@ namespace DataMatrixDecoder
     {
         static void Main(string[] args)
         {
-            //var fileName = "1185754.jpg";
-            var fileName = "236003_2.jpg";
-            //var fileName = "1223495.jpg";
-            //var fileName = "wiki.png";
-
-            var filePath = $@"{AppDomain.CurrentDomain.BaseDirectory}{fileName}";
-
-            var options = new DecodeOptions();
-            var bitmap = new Bitmap(filePath);
-
-            //new Dmtx().DecodeSingle(
-            //    bitmap, 
-            //    options, 
-            //    new Barcode { date = DateTime.Now, filename = filePath }, 
-            //    AppDomain.CreateDomain("MyDomain", null));
-
-            //_ = Task.Factory.StartNew(() =>
-            //{
-            //    new Dmtx().Decode(
-            //        bitmap,
-            //        new Barcode { date = DateTime.Now, filename = filePath },
-            //        options);
-            //});
-
-            new Dmtx().Decode(
-                bitmap,
-                new Barcode { date = DateTime.Now, filename = filePath },
-                options);
-
-            PrintBarcodes();
+            DecodeGoodReadPictures();
+            //PrintBarcodes();
             //DeleteAllBarcodes();
+        }
+
+        private static void DecodeGoodReadPictures()
+        {
+            var images = new DirectoryInfo(@"C:\Users\ASAP\Downloads\Telegram Desktop\GoodRead\GoodRead")
+                .GetFiles("*.jpg");
+
+            foreach (var image in images)
+            {
+                var filePath = image.FullName;
+
+                using (var context = new Context())
+                {
+                    new Dmtx().DecodeAndSave(
+                        new Bitmap(filePath),
+                        new Barcode { date = DateTime.Now, filename = filePath },
+                        new DecodeOptions(),
+                        context);
+                }
+            }
         }
 
         public static void PrintBarcodes()
