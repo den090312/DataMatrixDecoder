@@ -24,17 +24,18 @@ namespace DataMatrixDecoder
                 .GetFiles("*.jpg");
 
             foreach (var image in images)
-            {
-                var filePath = image.FullName;
+                new Task(() => DecodeAndSave(image.FullName)).RunSynchronously();
+        }
 
-                using (var context = new Context())
-                {
-                    new Dmtx().DecodeAndSave(
-                        new Bitmap(filePath),
-                        new Barcode { date = DateTime.Now, filename = filePath },
-                        new DecodeOptions(),
-                        context);
-                }
+        private static void DecodeAndSave(string filePath)
+        {
+            using (var context = new Context())
+            {
+                new Dmtx().DecodeAndSave(
+                    new Bitmap(filePath),
+                    new Barcode { date = DateTime.Now, filename = filePath },
+                    new DecodeOptions(),
+                    context);
             }
         }
 
