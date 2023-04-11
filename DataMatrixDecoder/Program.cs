@@ -11,9 +11,9 @@ namespace DataMatrixDecoder
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            DecodeGoodReadPictures();
+            await DecodeGoodReadPicturesAsync();
             //PrintBarcodes();
             //DeleteAllBarcodes();
         }
