@@ -18,13 +18,17 @@ namespace DataMatrixDecoder
             //DeleteAllBarcodes();
         }
 
-        private static void DecodeGoodReadPictures()
+        private static async Task DecodeGoodReadPicturesAsync()
         {
             var images = new DirectoryInfo(@"C:\Users\ASAP\Downloads\Telegram Desktop\GoodRead\GoodRead")
                 .GetFiles("*.jpg");
 
+            var tasks = new List<Task>();
+
             foreach (var image in images)
-                new Task(() => DecodeAndSave(image.FullName)).RunSynchronously();
+                tasks.Add(Task.Run(() => DecodeAndSave(image.FullName)));
+
+            await Task.WhenAll(tasks);
         }
 
         private static void DecodeAndSave(string filePath)
